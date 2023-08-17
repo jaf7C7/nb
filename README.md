@@ -19,10 +19,10 @@ USAGE
 COMMANDS
 	new
 		Create a new note
+	ls [<pattern>]
+		List all notes with id matching `<pattern>'
 	rm <id>
 		Delete note matching `<id>'
-	open <id>
-		Open note matching `<id>' in BROWSER
 	show <id>
 		Open note matching `<id>' in PAGER
 	edit <id>
@@ -30,7 +30,7 @@ COMMANDS
 	search <option> <query>
 		Search for notes matching `<query>' and print results
 		to stdout
-OPTIONS
+SEARCH OPTIONS
 	-t : Search titles only
 	-i : Search case-insensitively
 	-l : Print results as markdown links
@@ -45,14 +45,28 @@ OPTIONS
 ## Examples
 
 ```
-$ nb search 'foo'
-20231907124735:# This is foo, the frobinator, the frobulant
-$ nb show 20231907124735
-::::::::::::::
-20231907124735
-::::::::::::::
+$ nb search -i red hat
+20230817154917:# Renew (Re-register) Red Hat Developer Subscription (Free tier)
+20230817154917:2. Use your Red Hat login ID to sign in to the site.
+20230817154917:4. Log out of all Red Hat sites and close your browser(s).
+20230817154917:6. You should now see a new Red Hat Developer for Individuals Subscription on your account.
+
+$ nb -t foo
+20230817154941: This is foo, the frobinator, the frobulant
+
+$ nb ls
+20230817154917: Renew (Re-register) Red Hat Developer Subscription (Free tier)
+20230817154941: This is foo, the frobinator, the frobulant
+20230719124339: This is another test note
+20230710093302: This is a test note
+
+$ PAGER=cat nb show 20230817154941
 # This is foo, the frobinator, the frobulant
 
 This is END
 
-```
+
+$ nb rm 202307\*
+delete `20230719124339: This is another test note'? [y/N] y
+delete `20230710093302: This is a test note'? [y/N] y
+
