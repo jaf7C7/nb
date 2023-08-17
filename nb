@@ -50,7 +50,7 @@ die () {
 }
 
 id () {
-	date +%Y%d%m%H%M%S
+	date +%Y%m%d%H%M%S
 }
 
 print () {
