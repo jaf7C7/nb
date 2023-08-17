@@ -1,182 +1,191 @@
-#!/bin/sh
+#!/usr/bin/sh
 #
 # `nb` : Note manager
 
-# This script relies heavily on word splitting so the following checks are disabled:
-# shellcheck disable=SC2048,SC2086,SC2046
+# This script relies heavily on word splitting, so the following errors are ignored:
+# shellcheck disable=SC2086,SC2068,SC2046,SC2048
 
 : "${NOTES:="$HOME/notes"}"
 : "${EDITOR:=vi}"
 : "${PAGER:=more}"
 
-help () {
-	cat <<\EOF
+help() {
+    cat <<\EOF
 SUMMARY
-	nb : Create and search a repository of notes
+    nb : Create and search a repository of notes
 USAGE
-	nb [new|rm|open|show|edit] <id>
-	nb search <option> <query>
+    nb [new|rm|open|show|edit] <id>
+    nb search <option> <query>
 COMMANDS
-	new
-		Create a new note
-	ls [<pattern>]
-		List all notes with id matching `<pattern>'
-	rm <id>
-		Delete note matching `<id>'
-	show <id>
-		Open note matching `<id>' in PAGER
-	edit <id>
-		Open note matching `<id>' in EDITOR
-	search <option> <query>
-		Search for notes matching `<query>' and print results
-		to stdout
+    new
+        Create a new note
+    ls [<pattern>]
+        List all notes with id matching `<pattern>'
+    rm <id>
+        Delete note matching `<id>'
+    show <id>
+        Open note matching `<id>' in PAGER
+    edit <id>
+        Open note matching `<id>' in EDITOR
+    search <option> <query>
+        Search for notes matching `<query>' and print results
+        to stdout
 SEARCH OPTIONS
-	-t : Search titles only
-	-i : Search case-insensitively
-	-l : Print results as markdown links
-	-n : Print matching filenames only
+    -t : Search titles only
+    -i : Search case-insensitively
+    -l : Print results as markdown links
+    -n : Print matching filenames only
 
    The default behaviour (with no non-option arguments) is to open
    a new note in EDITOR. If the first non-option argument is not one of
    `new', `rm',`edit', or `search', then `search' is assumed.
 
 EOF
-	exit
+    exit
 }
 
-die () {
-	printf 'nb: %s\n' "$*" >&2
-	exit 1
+die() {
+    printf 'nb: %s\n' "$*" >&2
+    exit 1
 }
 
-id () {
-	date +%Y%m%d%H%M%S
+id() {
+    date +%Y%m%d%H%M%S
 }
 
-print () {
-	test -f $1 || die "no results for \`$1'"
-	for id
-	do
-		shift
-		read -r _ title <"$id"
-		case $opts in
-		*n*)
-			set -- "$@" "$id" ;;	# `n` overrides `l`
-		*l*)
-			set -- "$@" "[$title](file://$NOTES/$id)" ;;
-		*)
-			set -- "$@" "$id: $title"
-		esac
-	done
-	printf '%s\n' "$@"
+print() {
+    test -f "$1" || die "no results for \`$1'"
+    for id; do
+        shift
+        read -r _ title <"$id"
+        case $opts in
+            *n*) # `n` overrides `l`
+                set -- "$@" "$id"
+                ;;
+            *l*)
+                set -- "$@" "[$title](file://$NOTES/$id)"
+                ;;
+            *)
+                set -- "$@" "$id: $title"
+                ;;
+        esac
+    done
+    printf '%s\n' "$@"
 }
 
-new () {
-	id=$(id)
-	if test -t 0
-	then
-		"$EDITOR" "$id"
-	else
-		while IFS= read -r line
-		do
-			printf '%s\n' "$line"
-		done >"$id"
-	fi
-	test -e "$id" && print "$id"
+new() {
+    id=$(id)
+    if test -t 0; then
+        "$EDITOR" "$id"
+    else
+        while IFS= read -r line; do
+            printf '%s\n' "$line"
+        done >"$id"
+    fi
+    test -e "$id" && print "$id"
 }
 
-ls () {
-	print ${@:-*}
+ls() {
+    print ${@:-*}
 }
 
-search () {
-	case $opts in
-	*i*)
-		grep_opts=i
-	esac
-	case $opts in
-	*t*)
-		set -- $(
-			grep '^# ' -- * |
-			grep ${grep_opts+-"$grep_opts"} -- "$*" |
-			while IFS= read -r line
-			do
-				printf '%s\n' "${line%%:*}"
-			done
-		)
-		test $# -gt 0 || return 1
-		print "$@" ;;
-	*l*)
-		set -- $(grep -"l${grep_opts}" -- "$*" *)
-		test $# -gt 0 || return 1
-		print "$@" ;;
-	*)
-		case $opts in
-		*n*)
-			grep_opts=${grep_opts}l
-		esac
-		# `test` complains about extra arguments, hence this workaround
-		is_file () {
-			test -f "$1"
-		}
-		is_file ./* || die "$NOTES is empty..."
-		grep ${grep_opts+-"$grep_opts"} -- "$*" *
-	esac
+search() {
+    case $opts in
+        *i*)
+            grep_opts=i
+            ;;
+    esac
+    case $opts in
+        *t*)
+            set -- $(
+                grep '^# ' -- * |
+                    grep ${grep_opts+-"$grep_opts"} -- "$*" |
+                    while IFS= read -r line; do
+                        printf '%s\n' "${line%%:*}"
+                    done
+            )
+            test $# -gt 0 || return 1
+            print "$@"
+            ;;
+        *l*)
+            set -- $(grep -"l${grep_opts}" -- "$*" *)
+            test $# -gt 0 || return 1
+            print "$@"
+            ;;
+        *)
+            case $opts in
+                *n*)
+                    grep_opts=${grep_opts}l
+                    ;;
+            esac
+            # `test` complains about extra arguments, hence this workaround
+            is_file() {
+                test -f "$1"
+            }
+            is_file ./* || die "$NOTES is empty..."
+            grep ${grep_opts+-"$grep_opts"} -- "$*" *
+            ;;
+    esac
 }
 
-show () {
-	exec "$PAGER" "$@"
+show() {
+    exec "$PAGER" "$@"
 }
 
-edit () {
-	exec "$EDITOR" $*
+edit() {
+    exec "$EDITOR" $*
 }
 
-rm () {
-	set -- $*
-	test -f $1 || die "no results for \`$1'"
-	while test $# -gt 0
-	do
-		read -r _ title <"$1"
-		printf 'delete `%s: %s'\''? [y/N] ' "$1" "$title"
-		read -r reply
-		case $reply in
-		y)
-			command rm "$1"
-		esac
-		shift
-	done
+rm() {
+    set -- $*
+    test -f "$1" || die "no results for \`$1'"
+    while test $# -gt 0; do
+        read -r _ title <"$1"
+        printf 'delete `%s: %s'\''? [y/N] ' "$1" "$title"
+        read -r reply
+        case $reply in
+            y)
+                command rm "$1"
+                ;;
+        esac
+        shift
+    done
 }
 
-main () {
-	cd "$NOTES" || return 1
-	case $1 in
-	new|ls|search|show|edit|rm)
-		func=$1
-		shift
-	esac
-	while test $# -gt 0
-	do
-		case $1 in
-		--)
-			break ;;
-		--help|-h)
-			help ;;
-		-*[!lnti]*)
-			die "\`$1': unknown option" ;;
-		-?*)
-			opts=${opts}${1#-}
-			shift ;;
-		*)
-			break
-		esac
-	done
-	case $1 in
-	''|-)
-		test -z "$func" && func=new
-	esac
-	"${func:-search}" "$@"
+main() {
+    cd "$NOTES" || return 1
+    case $1 in
+        new | ls | search | show | edit | rm)
+            func=$1
+            shift
+            ;;
+    esac
+    while test $# -gt 0; do
+        case $1 in
+            --)
+                break
+                ;;
+            --help | -h)
+                help
+                ;;
+            -*[!lnti]*)
+                die "\`$1': unknown option"
+                ;;
+            -?*)
+                opts=${opts}${1#-}
+                shift
+                ;;
+            *)
+                break
+                ;;
+        esac
+    done
+    case $1 in
+        '' | -)
+            test -z "$func" && func=new
+            ;;
+    esac
+    "${func:-search}" "$@"
 }
 
 main "$@"
-
