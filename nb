@@ -54,6 +54,7 @@ id () {
 }
 
 print () {
+	test -f $1 || die "no results for \`$1'"
 	for id
 	do
 		shift
@@ -129,6 +130,7 @@ edit () {
 
 rm () {
 	set -- $*
+	test -f $1 || die "no results for \`$1'"
 	while test $# -gt 0
 	do
 		read -r _ title <"$1"
