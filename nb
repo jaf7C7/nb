@@ -95,7 +95,7 @@ search () {
 		grep_opts=i
 	esac
 	case $opts in
-	*[tl]*)
+	*t*)
 		set -- $(
 			grep '^# ' -- * |
 			grep ${grep_opts+-"$grep_opts"} -- "$*" |
@@ -104,6 +104,10 @@ search () {
 				printf '%s\n' "${line%%:*}"
 			done
 		)
+		test $# -gt 0 || return 1
+		print "$@" ;;
+	*l*)
+		set -- $(grep -"l${grep_opts}" -- "$*" *)
 		test $# -gt 0 || return 1
 		print "$@" ;;
 	*)
