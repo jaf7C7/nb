@@ -44,6 +44,15 @@ EOF
     exit
 }
 
+enable_logging() {
+    # Writes debugging output to a named pipe only if something is listening on the
+    # other end
+    log_file=/tmp/nb.log
+    test -p "$log_file" || mkfifo "$log_file"
+    set -x
+    lsof /tmp/foo >/dev/null 2>&1 && exec 2>"$log_file"
+}
+
 die() {
     printf 'nb: %s\n' "$*" >&2
     exit 1
@@ -164,6 +173,10 @@ main() {
         case $1 in
             --)
                 break
+                ;;
+            --debug)
+                shift
+                enable_logging
                 ;;
             --help | -h)
                 help
