@@ -171,7 +171,6 @@ rm ()
 		case $reply in
 		y)
 			command rm "$1"
-			;;
 		esac
 		shift
 	done
@@ -212,7 +211,6 @@ main ()
 	case $1 in
 	'' | -)
 		test -z "$func" && func=new
-		;;
 	esac
 	"${func:-search}" "$@"
 }
