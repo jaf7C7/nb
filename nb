@@ -116,10 +116,16 @@ search ()
 	case $opts in
 	*t*)
 		set -- $(
-			head -1 * |
-			sed '/^=/{N;s/==> \([[:digit:]]*\).*\n/\1:/};/^$/d' |
+			for file in *
+			do
+				read -r title <"$file"
+				printf '%s: %s\n' "$file" "$title"
+			done |
 			grep ${grep_opts+-"$grep_opts"} -- "$*" |
-			sed 's/:.*//'
+			while read -r line
+			do
+				printf '%s\n' "${line%:*}"
+			done
 		)
 		test $# -gt 0 || return 1
 		print "$@"
