@@ -107,11 +107,10 @@ search() {
     case $opts in
         *t*)
             set -- $(
-                grep '^# ' -- * |
-                    grep ${grep_opts+-"$grep_opts"} -- "$*" |
-                    while IFS= read -r line; do
-                        printf '%s\n' "${line%%:*}"
-                    done
+                head -1 * |
+                sed '/^=/{N;s/==> \([[:digit:]]*\).*\n/\1:/};/^$/d' |
+                grep ${grep_opts+-"$grep_opts"} -- "$*" |
+                sed 's/:.*//'
             )
             test $# -gt 0 || return 1
             print "$@"
