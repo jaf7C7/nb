@@ -176,11 +176,18 @@ rm ()
 	done
 }
 
+update ()
+{
+       git add .
+       git commit -m "Update"
+       git push
+}
+
 main ()
 {
 	cd "$NOTES" || return 1
 	case $1 in
-	new | ls | search | show | edit | rm)
+	new | ls | search | show | edit | rm | update)
 		func=$1
 		shift
 	esac
