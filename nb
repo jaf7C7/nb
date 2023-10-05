@@ -5,6 +5,8 @@
 # This script relies heavily on word splitting, so the following errors are ignored:
 # shellcheck disable=SC2086,SC2068,SC2046,SC2048
 
+# TODO: Give all files a `.md` extension (so editors etc. can tell the filetype)
+
 : "${NOTES:="$HOME/notes"}"
 : "${EDITOR:=vi}"
 : "${PAGER:=more}"
